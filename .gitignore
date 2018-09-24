@@ -1,0 +1,5 @@
+resources/*
+datasets/*
+!datasets/.gitkeep
+vvenv/*
+cgp/__pycache__/*
