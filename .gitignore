@@ -3,3 +3,4 @@ datasets/*
 !datasets/.gitkeep
 vvenv/*
 cgp/__pycache__/*
+.vscode/*
