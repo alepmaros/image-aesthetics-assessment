@@ -1,2 +1,3 @@
-# cgp-cnn
-Cartesian Genetic Programming for evolving CNN architecture 
+# Image quality/aesthetics assessment
+
+Image quality assessment using different approaches.
