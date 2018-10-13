@@ -1,16 +1,15 @@
-import cv2
 import numpy as np
 import pandas as pd
-import os
+import os, cv2, time
 
 
-image_csv = pd.read_csv('datasets/photonet/photonet_dataset_cleaned.csv').sample(50)
-image_csv2 = pd.read_csv('datasets/photonet/photonet_dataset_cleaned.csv').sample(50)
+image_csv = pd.read_csv('datasets/photonet/features_r.csv', dtype={'photo_id':str}).sample(n=100)
+image_csv2 = pd.read_csv('datasets/photonet/features_r.csv', dtype={'photo_id':str})
 
 # Create Sift Extractor
 sift = cv2.xfeatures2d.SIFT_create()
 
-dictionarySize = 32
+dictionarySize = 16
 
 BOW = cv2.BOWKMeansTrainer(dictionarySize)
 
