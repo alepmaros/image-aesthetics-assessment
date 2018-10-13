@@ -10,7 +10,7 @@ from keras.layers import Dense
 from keras.models import Model
 from keras.preprocessing.image import ImageDataGenerator
 from keras.optimizers import RMSprop
-
+from keras import metrics
 from sklearn.model_selection import train_test_split
 from sklearn.utils import resample
 
@@ -29,7 +29,7 @@ class LossHistory(Callback):
 
 if __name__ == '__main__':
     
-    batch_size=16
+    batch_size=8
 
     train_datagen = ImageDataGenerator(rescale=1./255)
     test_datagen = ImageDataGenerator(rescale=1./255)
@@ -41,7 +41,7 @@ if __name__ == '__main__':
             class_mode='binary')
 
     validation_generator = test_datagen.flow_from_directory(
-            'datasets/photonet_flow/validation',
+            'datasets/photonet_flow/validate',
             target_size=(224, 224),
             batch_size=batch_size,
             class_mode='binary')
@@ -59,17 +59,20 @@ if __name__ == '__main__':
                 optimizer=optimizer,
                 metrics=['accuracy'])
     
-    nb_epoch=20
+    nb_epoch=10
     history = LossHistory()
     early_stopping = EarlyStopping(monitor='val_loss', patience=5, verbose=1, mode='auto')
     model.fit_generator(
         train_generator,
-        steps_per_epoch = 1900 // batch_size,
+        steps_per_epoch = 10000 // batch_size,
         epochs=nb_epoch,
         validation_data=validation_generator,
-        validation_steps=900 // batch_size,
+        validation_steps=1000 // batch_size,
         verbose=True,
-        callbacks=[history])
+        callbacks=[history],
+        class_weight = { 0: 0.273, 1: 0.727}
+    )
+    model.save('model1.h5')
     
     # predictions = model.predict(test_data)
     # print(predictions)
