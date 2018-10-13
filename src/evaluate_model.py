@@ -45,9 +45,8 @@ if __name__ == '__main__':
     average_precision = average_precision_score(y_test, y_pred)
 
     plt.figure()
-    plt.step(recall, precision, color='b', alpha=0.2,
-         where='post')
-    plt.fill_between(recall, precision, alpha=0.2, color='b', **step_kwargs)
+    plt.step(recall, precision, color='b', alpha=0.2, where='post')
+    plt.fill_between(recall, precision, alpha=0.2, color='b')
 
     plt.xlabel('Recall')
     plt.ylabel('Precision')
@@ -55,3 +54,4 @@ if __name__ == '__main__':
     plt.xlim([0.0, 1.0])
     plt.title('2-class Precision-Recall curve: AP={0:0.2f}'.format(
             average_precision))
+    plt.show()
