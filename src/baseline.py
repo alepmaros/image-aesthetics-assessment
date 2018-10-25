@@ -47,14 +47,14 @@ if __name__ == '__main__':
             class_mode='binary')
 
     # Generate a model with all layers (with top)
-    vgg16 = MobileNetV2(weights=None, include_top=True)
+    model = MobileNetV2(weights=None, include_top=True)
 
     #Add a layer where input is the output of the  second last layer 
-    x = Dense(1, activation='sigmoid', name='predictions')(vgg16.layers[-2].output)
+    x = Dense(1, activation='sigmoid', name='predictions')(model.layers[-2].output)
 
     #Then create the corresponding model 
     optimizer = RMSprop(lr=1e-4)
-    model = Model(inputs=vgg16.input, outputs=x)
+    model = Model(inputs=model.input, outputs=x)
     model.compile(loss='binary_crossentropy',
                 optimizer=optimizer,
                 metrics=['accuracy'])

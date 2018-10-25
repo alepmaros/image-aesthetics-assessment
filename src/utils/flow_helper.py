@@ -25,8 +25,6 @@ dataset = dataset.drop_duplicates(subset=['photo_id'])
 
 dataset['quality'] = np.where(dataset['mean_ratings'] > 5.5, 1, 0)
 
-
-
 dataset = dataset.sample(frac=1)
 
 # df = downsample_df(dataset)
