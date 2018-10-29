@@ -4,3 +4,4 @@ datasets/*
 vvenv/*
 cgp/__pycache__/*
 .vscode/*
+src/utils/__pycache__/*
