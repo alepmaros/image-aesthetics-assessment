@@ -6,3 +6,4 @@ cgp/__pycache__/*
 .vscode/*
 src/utils/__pycache__/*
 src/models/__pycache__/*
+*.h5
