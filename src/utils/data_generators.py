@@ -17,7 +17,15 @@ def get_paths(imgs_df):
     for index, row in imgs_df.iterrows():
         img_path = os.path.join(_base_path, 'datasets/photonet/imgs/{}.jpg'.format(row['photo_id']))
         image_paths.append(img_path)
-        image_scores.append(row['quality'])
+
+        score = np.array([
+            row['nb_ratings_1'], row['nb_ratings_2'], row['nb_ratings_3'],
+            row['nb_ratings_4'], row['nb_ratings_5'], row['nb_ratings_6'],
+            row['nb_ratings_7']
+        ])
+        score = score / np.sum(score)
+
+        image_scores.append(score.tolist())
     return image_paths, image_scores
 
 _base_path = '/data/alexandremaros/git/image-aesthetics-assessment'
@@ -25,12 +33,15 @@ imgs_csv = pd.read_csv(os.path.join(_base_path, 'datasets/photonet/photonet_data
 
 imgs_csv['quality'] = np.where(imgs_csv['mean_ratings'] > 5.5, 1, 0)
 
-imgs_train, imgs_test = train_test_split(imgs_csv, test_size=0.1, random_state=SEED)
+imgs_train, imgs_test = train_test_split(imgs_csv, test_size=0.2, random_state=SEED)
 imgs_test, imgs_cv = train_test_split(imgs_test, test_size=0.5, random_state=SEED)
 
 print('Train:', imgs_train.shape)
+_SIZE_TRAIN = imgs_train.shape[0]
 print('Test:', imgs_test.shape)
+_SIZE_TEST = imgs_test.shape[0]
 print('CV:', imgs_cv.shape)
+_SIZE_CV = imgs_cv.shape[0]
 
 train_image_paths, train_scores = get_paths(imgs_train)
 test_image_paths, test_scores = get_paths(imgs_test)
@@ -54,7 +65,7 @@ def parse_data(filename, scores):
     image_ccropped = tf.image.central_crop (image, 0.5)
     image_ccropped = tf.image.resize_images(image_ccropped, (IMAGE_SIZE, IMAGE_SIZE))
 
-    return [image_resized, image_ccropped], scores
+    return image_resized, image_ccropped, scores
 
 def train_generator(batchsize, shuffle=True):
     '''
@@ -72,7 +83,7 @@ def train_generator(batchsize, shuffle=True):
         train_dataset = train_dataset.batch(batchsize)
         train_dataset = train_dataset.repeat()
         if shuffle:
-            train_dataset = train_dataset.shuffle(buffer_size=4)
+            train_dataset = train_dataset.shuffle(buffer_size=4, seed=SEED)
         train_iterator = train_dataset.make_initializable_iterator()
 
         train_batch = train_iterator.get_next()
@@ -81,15 +92,15 @@ def train_generator(batchsize, shuffle=True):
 
         while True:
             try:
-                X_batch, y_batch = sess.run(train_batch)
-                yield (X_batch, y_batch)
+                X_batch_full, X_batch_cropped, y_batch = sess.run(train_batch)
+                yield ([X_batch_full, X_batch_cropped], y_batch)
             except:
                 train_iterator = train_dataset.make_initializable_iterator()
                 sess.run(train_iterator.initializer)
                 train_batch = train_iterator.get_next()
 
-                X_batch, y_batch = sess.run(train_batch)
-            yield (X_batch, y_batch)
+                X_batch_full, X_batch_cropped, y_batch = sess.run(train_batch)
+            yield ([X_batch_full, X_batch_cropped], y_batch)
 
 def valid_generator(batchsize, shuffle=True):
     '''
@@ -107,7 +118,7 @@ def valid_generator(batchsize, shuffle=True):
         train_dataset = train_dataset.batch(batchsize)
         train_dataset = train_dataset.repeat()
         if shuffle:
-            train_dataset = train_dataset.shuffle(buffer_size=4)
+            train_dataset = train_dataset.shuffle(buffer_size=4, seed=SEED)
         train_iterator = train_dataset.make_initializable_iterator()
 
         train_batch = train_iterator.get_next()
@@ -116,15 +127,15 @@ def valid_generator(batchsize, shuffle=True):
 
         while True:
             try:
-                X_batch, y_batch = sess.run(train_batch)
-                yield (X_batch, y_batch)
+                X_batch_full, X_batch_cropped, y_batch = sess.run(train_batch)
+                yield ([X_batch_full, X_batch_cropped], y_batch)
             except:
                 train_iterator = train_dataset.make_initializable_iterator()
                 sess.run(train_iterator.initializer)
                 train_batch = train_iterator.get_next()
 
-                X_batch, y_batch = sess.run(train_batch)
-            yield (X_batch, y_batch)
+                X_batch_full, X_batch_cropped, y_batch = sess.run(train_batch)
+            yield ([X_batch_full, X_batch_cropped], y_batch)
 
 print('Generators Loaded.')
 
