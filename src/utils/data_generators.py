@@ -1,3 +1,6 @@
+import sys
+sys.path.append("..")
+
 import os
 import pandas as pd
 import numpy as np
@@ -6,16 +9,17 @@ from sklearn.model_selection import train_test_split
 
 import tensorflow as tf
 
+from src.config import _BASE_PATH, _RANDOM_SEED
+
 print('Loading Generators...')
 
-SEED = 481518
 IMAGE_SIZE = 224
 
 def get_paths(imgs_df):
     image_paths = []
     image_scores = []
-    for index, row in imgs_df.iterrows():
-        img_path = os.path.join(_base_path, 'datasets/photonet/imgs/{}.jpg'.format(row['photo_id']))
+    for _, row in imgs_df.iterrows():
+        img_path = os.path.join(_BASE_PATH, 'datasets/photonet/imgs/{}.jpg'.format(row['photo_id']))
         image_paths.append(img_path)
 
         score = np.array([
@@ -28,13 +32,12 @@ def get_paths(imgs_df):
         image_scores.append(score.tolist())
     return image_paths, image_scores
 
-_base_path = '/data/alexandremaros/git/image-aesthetics-assessment'
-imgs_csv = pd.read_csv(os.path.join(_base_path, 'datasets/photonet/photonet_dataset_cleaned.csv'))
+imgs_csv = pd.read_csv(os.path.join(_BASE_PATH, 'datasets/photonet/photonet_dataset_cleaned.csv'))
 
 imgs_csv['quality'] = np.where(imgs_csv['mean_ratings'] > 5.5, 1, 0)
 
-imgs_train, imgs_test = train_test_split(imgs_csv, test_size=0.2, random_state=SEED)
-imgs_test, imgs_cv = train_test_split(imgs_test, test_size=0.5, random_state=SEED)
+imgs_train, imgs_test = train_test_split(imgs_csv, test_size=0.2, random_state=_RANDOM_SEED)
+imgs_test, imgs_cv = train_test_split(imgs_test, test_size=0.5, random_state=_RANDOM_SEED)
 
 print('Train:', imgs_train.shape)
 _SIZE_TRAIN = imgs_train.shape[0]
@@ -83,7 +86,7 @@ def train_generator(batchsize, shuffle=True):
         train_dataset = train_dataset.batch(batchsize)
         train_dataset = train_dataset.repeat()
         if shuffle:
-            train_dataset = train_dataset.shuffle(buffer_size=4, seed=SEED)
+            train_dataset = train_dataset.shuffle(buffer_size=4, seed=_RANDOM_SEED)
         train_iterator = train_dataset.make_initializable_iterator()
 
         train_batch = train_iterator.get_next()
@@ -118,7 +121,7 @@ def valid_generator(batchsize, shuffle=True):
         train_dataset = train_dataset.batch(batchsize)
         train_dataset = train_dataset.repeat()
         if shuffle:
-            train_dataset = train_dataset.shuffle(buffer_size=4, seed=SEED)
+            train_dataset = train_dataset.shuffle(buffer_size=4, seed=_RANDOM_SEED)
         train_iterator = train_dataset.make_initializable_iterator()
 
         train_batch = train_iterator.get_next()

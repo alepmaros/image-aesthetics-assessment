@@ -1,3 +1,6 @@
+import sys
+sys.path.append("..")
+
 import os
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -5,11 +8,12 @@ import numpy as np
 
 from sklearn.model_selection import train_test_split
 
-SEED = 481516
+from src.sys_config import _RANDOM_SEED
+
 imgs_csv = pd.read_csv('datasets/photonet/photonet_dataset_cleaned.csv')
 
-imgs_train, imgs_test = train_test_split(imgs_csv, test_size=0.2, random_state=SEED)
-imgs_test, imgs_cv = train_test_split(imgs_test, test_size=0.5, random_state=SEED)
+imgs_train, imgs_test = train_test_split(imgs_csv, test_size=0.2, random_state=_RANDOM_SEED)
+imgs_test, imgs_cv = train_test_split(imgs_test, test_size=0.5, random_state=_RANDOM_SEED)
 
 with plt.style.context(('seaborn-darkgrid')):
     f = plt.figure()
