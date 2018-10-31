@@ -1,6 +1,3 @@
-import sys
-sys.path.append("..")
-
 import os
 import pandas as pd
 import numpy as np
@@ -9,7 +6,9 @@ from sklearn.model_selection import train_test_split
 
 import tensorflow as tf
 
-from src.config import _BASE_PATH, _RANDOM_SEED
+import sys 
+sys.path.append('..')
+from sys_config import _BASE_PATH, _RANDOM_SEED
 
 print('Loading Generators...')
 

@@ -1,4 +1,4 @@
-import os, cv2, random, time
+import os, random, time
 import numpy as np
 import pandas as pd
 
@@ -8,8 +8,11 @@ from keras.callbacks import ModelCheckpoint, Callback, EarlyStopping, TensorBoar
 
 from models.models import get_proposed_model, LossHistory
 from utils.data_generators import train_generator, valid_generator, _SIZE_CV, _SIZE_TRAIN
+from sys_config import _BASE_PATH
 
 BATCH_SIZE=4
+
+filepath = os.path.join(_BASE_PATH, 'trained_models', 'proposed_model.h5')
 
 model = get_proposed_model()
 
@@ -17,11 +20,11 @@ nb_epoch=20
 
 history = LossHistory()
 early_stopping = EarlyStopping(monitor='val_loss', patience=5, verbose=1, mode='auto')
-checkpoint = ModelCheckpoint('proposed_model.h5', monitor='val_loss', verbose=1, save_best_only=True,
-                             mode='min')
+checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=1, save_best_only=True,
+                             mode='min', period=1)
 tensorboard = TensorBoard(log_dir='Graph', histogram_freq=0, write_graph=True,
                         write_images=True)
-callbacks = [history,  checkpoint, tensorboard]
+callbacks = [history,  checkpoint]
 
 model.fit_generator(
     train_generator(BATCH_SIZE),
@@ -33,4 +36,13 @@ model.fit_generator(
     callbacks=callbacks
 )
 
-model.save('proposed_model_final.h5')
+model.save(os.path.join(_BASE_PATH, 'trained_models', 'proposed_model_final.h5'))
+
+loss = history.losses
+val_loss = history.val_losses
+
+with open(os.path.join('trained_models', 'loss.txt'), 'w') as fhandle:
+    fhandle.write(loss)
+
+with open(os.path.join('trained_models', 'val_loss.txt'), 'w') as fhandle:
+    fhandle.write(val_loss)
