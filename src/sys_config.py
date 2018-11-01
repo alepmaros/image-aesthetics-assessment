@@ -1,3 +1,3 @@
 
-_BASE_PATH = '/home/apm/git/image-aesthetics-assessment'
+_BASE_PATH = '/data/alexandremaros/git/image-aesthetics-assessment'
 _RANDOM_SEED = 481516

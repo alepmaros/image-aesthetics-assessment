@@ -3,8 +3,9 @@ from keras.layers import Dense, Concatenate
 from keras.models import Model
 from keras.applications import MobileNetV2, MobileNet
 from keras.optimizers import RMSprop, Adam
+from keras.losses import binary_crossentropy
 
-from models.losses import earth_mover_loss
+from .losses import earth_mover_loss
 
 class LossHistory(Callback):
     def on_train_begin(self, logs={}):
@@ -46,3 +47,29 @@ def get_proposed_model():
             optimizer=optimizer)
 
     return merged_model
+
+
+def get_2nd_proposed_model():
+    model = MobileNetV2(weights=None, include_top=True)
+    # x = Dense(1, activation='sigmoid', name='predictions')(model.layers[-2].output)
+    x = Dense(7, activation='softmax')(model.layers[-2].output)
+    final_model = Model(inputs=model.input, outputs=x)
+    print(final_model.summary())
+    optimizer = Adam(lr=1e-3)
+    final_model.compile(loss=earth_mover_loss,
+            optimizer=optimizer)
+
+    return final_model
+
+
+def get_baseline():
+    model = MobileNetV2(weights=None, include_top=True)
+    # x = Dense(1, activation='sigmoid', name='predictions')(model.layers[-2].output)
+    x = Dense(7, activation='softmax')(model.layers[-2].output)
+    final_model = Model(inputs=model.input, outputs=x)
+    print(final_model.summary())
+    optimizer = Adam(lr=1e-3)
+    final_model.compile(loss=binary_crossentropy,
+            optimizer=optimizer)
+
+    return final_model

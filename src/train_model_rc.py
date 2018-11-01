@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from keras.callbacks import ModelCheckpoint, Callback, EarlyStopping, TensorBoard
 
 from models.models import get_proposed_model, LossHistory
-from utils.data_generators import train_generator, valid_generator, _SIZE_CV, _SIZE_TRAIN
+from utils.data_generators import train_generator_rc, valid_generator_rc, _SIZE_CV, _SIZE_TRAIN
 from sys_config import _BASE_PATH
 
 BATCH_SIZE=4
@@ -27,10 +27,10 @@ tensorboard = TensorBoard(log_dir='Graph', histogram_freq=0, write_graph=True,
 callbacks = [history,  checkpoint]
 
 model.fit_generator(
-    train_generator(BATCH_SIZE),
+    train_generator_rc(BATCH_SIZE),
     steps_per_epoch = _SIZE_TRAIN // BATCH_SIZE,
     epochs=nb_epoch,
-    validation_data=valid_generator(BATCH_SIZE),
+    validation_data=valid_generator_rc(BATCH_SIZE),
     validation_steps= _SIZE_CV // BATCH_SIZE,
     verbose=True,
     callbacks=callbacks
