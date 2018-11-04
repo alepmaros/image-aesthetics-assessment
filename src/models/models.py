@@ -2,7 +2,7 @@ from keras.callbacks import ModelCheckpoint, Callback, EarlyStopping
 from keras.layers import Dense, Concatenate
 from keras.models import Model
 from keras.applications import MobileNetV2, MobileNet
-from keras.optimizers import RMSprop, Adam
+from keras.optimizers import RMSprop, Adam, Adadelta
 from keras.losses import binary_crossentropy
 
 from .losses import earth_mover_loss
@@ -55,7 +55,8 @@ def get_2nd_proposed_model():
     x = Dense(7, activation='softmax')(model.layers[-2].output)
     final_model = Model(inputs=model.input, outputs=x)
     print(final_model.summary())
-    optimizer = Adam(lr=1e-3)
+    # optimizer = Adam(lr=1e-3)
+    optimizer = Adadelta()
     final_model.compile(loss=earth_mover_loss,
             optimizer=optimizer)
 

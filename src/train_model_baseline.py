@@ -1,4 +1,4 @@
-import os, random, time
+import os, random, time, pickle
 import numpy as np
 import pandas as pd
 
@@ -6,13 +6,13 @@ import matplotlib.pyplot as plt
 
 from keras.callbacks import ModelCheckpoint, Callback, EarlyStopping, TensorBoard
 
-from models.models import get_2nd_proposed_model, LossHistory
+from models.models import get_baseline, LossHistory
 from utils.data_generators import train_generator_r, valid_generator_r, _SIZE_CV, _SIZE_TRAIN
 from sys_config import _BASE_PATH
 
 BATCH_SIZE=4
 
-filepath = os.path.join(_BASE_PATH, 'trained_models', '2ndproposed_model.h5')
+filepath = os.path.join(_BASE_PATH, 'trained_models', 'baseline_model.h5')
 
 model = get_baseline()
 
@@ -36,13 +36,13 @@ model.fit_generator(
     callbacks=callbacks
 )
 
-model.save(os.path.join(_BASE_PATH, 'trained_models', '2ndproposed_model_final.h5'))
+model.save(os.path.join(_BASE_PATH, 'trained_models', 'baseline_model_final.h5'))
 
 loss = history.losses
 val_loss = history.val_losses
 
 with open(os.path.join('trained_models', 'loss.txt'), 'w') as fhandle:
-    fhandle.write(loss)
+    pickle.dump(loss, fhandle)
 
 with open(os.path.join('trained_models', 'val_loss.txt'), 'w') as fhandle:
-    fhandle.write(val_loss)
+    pickle.dump(val_loss, fhandle)

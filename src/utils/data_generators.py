@@ -8,7 +8,11 @@ import tensorflow as tf
 
 import sys 
 sys.path.append('..')
-from sys_config import _BASE_PATH, _RANDOM_SEED
+# from sys_config import _BASE_PATH, _RANDOM_SEED
+
+
+_BASE_PATH = '/home/apm/git/image-aesthetics-assessment'
+_RANDOM_SEED = 481516
 
 print('Loading Generators...')
 
@@ -34,7 +38,7 @@ def get_paths(imgs_df):
         image_scores_baseline.append(np.rint(row['mean_ratings'])-1)
     return image_paths, image_scores, image_scores_baseline
 
-imgs_csv = pd.read_csv(os.path.join(_BASE_PATH, 'datasets/photonet/photonet_dataset_cleaned.csv'))
+imgs_csv = pd.read_csv(os.path.join(_BASE_PATH, 'datasets/photonet/photonet_cleaned_tf.csv'))
 
 imgs_csv['quality'] = np.where(imgs_csv['mean_ratings'] > 5.5, 1, 0)
 
@@ -104,7 +108,7 @@ def train_generator_rc(batchsize, shuffle=True):
         train_dataset = train_dataset.batch(batchsize)
         train_dataset = train_dataset.repeat()
         if shuffle:
-            train_dataset = train_dataset.shuffle(buffer_size=4)
+            train_dataset = train_dataset.shuffle(buffer_size=128)
         train_iterator = train_dataset.make_initializable_iterator()
 
         train_batch = train_iterator.get_next()
@@ -139,7 +143,7 @@ def valid_generator_rc(batchsize, shuffle=True):
         train_dataset = train_dataset.batch(batchsize)
         train_dataset = train_dataset.repeat()
         if shuffle:
-            train_dataset = train_dataset.shuffle(buffer_size=4)
+            train_dataset = train_dataset.shuffle(buffer_size=128)
         train_iterator = train_dataset.make_initializable_iterator()
 
         train_batch = train_iterator.get_next()
@@ -209,7 +213,7 @@ def train_generator_r(batchsize, shuffle=True):
         train_dataset = train_dataset.batch(batchsize)
         train_dataset = train_dataset.repeat()
         if shuffle:
-            train_dataset = train_dataset.shuffle(buffer_size=4)
+            train_dataset = train_dataset.shuffle(buffer_size=128)
         train_iterator = train_dataset.make_initializable_iterator()
 
         train_batch = train_iterator.get_next()
@@ -244,7 +248,7 @@ def valid_generator_r(batchsize, shuffle=True):
         train_dataset = train_dataset.batch(batchsize)
         train_dataset = train_dataset.repeat()
         if shuffle:
-            train_dataset = train_dataset.shuffle(buffer_size=4)
+            train_dataset = train_dataset.shuffle(buffer_size=128)
         train_iterator = train_dataset.make_initializable_iterator()
 
         train_batch = train_iterator.get_next()
@@ -255,7 +259,9 @@ def valid_generator_r(batchsize, shuffle=True):
             try:
                 X_batch, y_batch = sess.run(train_batch)
                 yield (X_batch, y_batch)
-            except:
+            except Exception as e:
+                print(e)
+                input()
                 train_iterator = train_dataset.make_initializable_iterator()
                 sess.run(train_iterator.initializer)
                 train_batch = train_iterator.get_next()
@@ -266,13 +272,24 @@ def valid_generator_r(batchsize, shuffle=True):
 
 print('Generators Loaded.')
 
-# # Test
+# # # Test
 # from PIL import Image
-# a = valid_generator(4)
+# a = valid_generator_r(4)
+
 # result = next(a)
 
-# img_1 = (result[0][1][0]*255).astype('uint8')
-# img_2 = (result[0][1][1]*255).astype('uint8')
+# img_1 = (result[0][1]*255).astype('uint8')
+# img_2 = (result[0][1]*255).astype('uint8')
 
 # Image.fromarray(img_1).show()
-# Image.fromarray(img_2).show()
+# # Image.fromarray(img_2).show()
+
+# # import matplotlib.pyplot as plt
+
+# # plt.imshow(img_1)
+# # plt.show()
+
+# for i in range (0, _SIZE_CV // 4):
+#     print(i, _SIZE_CV//4)
+#     next(a)
+

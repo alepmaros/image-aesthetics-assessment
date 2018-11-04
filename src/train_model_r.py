@@ -1,4 +1,4 @@
-import os, random, time
+import os, random, time, pickle
 import numpy as np
 import pandas as pd
 
@@ -42,7 +42,7 @@ loss = history.losses
 val_loss = history.val_losses
 
 with open(os.path.join('trained_models', 'loss.txt'), 'w') as fhandle:
-    fhandle.write(loss)
+    pickle.dump(loss, fhandle)
 
 with open(os.path.join('trained_models', 'val_loss.txt'), 'w') as fhandle:
-    fhandle.write(val_loss)
+    pickle.dump(val_loss, fhandle)
