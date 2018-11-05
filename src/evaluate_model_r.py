@@ -9,7 +9,7 @@ import keras.losses
 from keras.models import load_model
 from keras.models import Model
 
-from utils.data_generators import test_generator_rc, test_scores
+from utils.data_generators import test_generator_r, test_scores
 from models.losses import earth_mover_loss
 
 keras.losses.earth_mover_loss = earth_mover_loss
@@ -21,13 +21,13 @@ BATCH_SIZE = 1
 if __name__ == '__main__':
     plt.style.use('seaborn-whitegrid')
     
-    if os.path.exists('experiments/proposed_model_predictions'):
-        with open('experiments/proposed_model_predictions', 'rb') as fhandle:
+    if os.path.exists('experiments/2ndproposed_model_predictions'):
+        with open('experiments/2ndproposed_model_predictions', 'rb') as fhandle:
             y_pred = pickle.load(fhandle)
     else:
-        model = load_model('trained_models/proposed_model.h5')
-        y_pred = model.predict_generator(test_generator_rc(BATCH_SIZE), steps=(len(test_scores)//BATCH_SIZE), verbose=1)
-        with open('experiments/proposed_model_predictions', 'wb') as fhandle:
+        model = load_model('trained_models/2ndproposed_model.h5')
+        y_pred = model.predict_generator(test_generator_r(BATCH_SIZE), steps=(len(test_scores)//BATCH_SIZE), verbose=1)
+        with open('experiments/2ndproposed_model_predictions', 'wb') as fhandle:
             pickle.dump(y_pred, fhandle)
     
     print(len(test_scores))

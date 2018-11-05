@@ -242,33 +242,69 @@ def valid_generator_r(batchsize, shuffle=True):
     '''
     with tf.Session() as sess:
         # create a dataset
-        train_dataset = tf.data.Dataset().from_tensor_slices((cv_image_paths, cv_scores))
-        train_dataset = train_dataset.map(parse_data_r, num_parallel_calls=2)
+        valid_dataset = tf.data.Dataset().from_tensor_slices((cv_image_paths, cv_scores))
+        valid_dataset = valid_dataset.map(parse_data_r, num_parallel_calls=2)
 
-        train_dataset = train_dataset.batch(batchsize)
-        train_dataset = train_dataset.repeat()
+        valid_dataset = valid_dataset.batch(batchsize)
+        valid_dataset = valid_dataset.repeat()
         if shuffle:
-            train_dataset = train_dataset.shuffle(buffer_size=128)
-        train_iterator = train_dataset.make_initializable_iterator()
+            valid_dataset = valid_dataset.shuffle(buffer_size=128)
+        valid_iterator = valid_dataset.make_initializable_iterator()
 
-        train_batch = train_iterator.get_next()
+        valid_batch = valid_iterator.get_next()
 
-        sess.run(train_iterator.initializer)
+        sess.run(valid_iterator.initializer)
 
         while True:
             try:
-                X_batch, y_batch = sess.run(train_batch)
+                X_batch, y_batch = sess.run(valid_batch)
                 yield (X_batch, y_batch)
             except Exception as e:
                 print(e)
                 input()
-                train_iterator = train_dataset.make_initializable_iterator()
-                sess.run(train_iterator.initializer)
-                train_batch = train_iterator.get_next()
+                valid_iterator = valid_dataset.make_initializable_iterator()
+                sess.run(valid_iterator.initializer)
+                valid_batch = valid_iterator.get_next()
 
-                X_batch, y_batch = sess.run(train_batch)
+                X_batch, y_batch = sess.run(valid_batch)
                 yield (X_batch, y_batch)
 
+def test_generator_r(batchsize, shuffle=True):
+    '''
+    Args:
+        batchsize: batchsize for training
+        shuffle: whether to shuffle the dataset
+    Returns:
+        a batch of samples (X_images, y_scores)
+    '''
+    with tf.Session() as sess:
+        # create a dataset
+        test_dataset = tf.data.Dataset().from_tensor_slices((test_image_paths, test_image_paths))
+        test_dataset = test_dataset.map(parse_data_r, num_parallel_calls=2)
+
+        test_dataset = test_dataset.batch(batchsize)
+        test_dataset = test_dataset.repeat()
+        if shuffle:
+            test_dataset = test_dataset.shuffle(buffer_size=128)
+        test_iterator = test_dataset.make_initializable_iterator()
+
+        test_batch = test_iterator.get_next()
+
+        sess.run(test_iterator.initializer)
+
+        while True:
+            try:
+                X_batch, y_batch = sess.run(test_batch)
+                yield (X_batch, y_batch)
+            except Exception as e:
+                print(e)
+                input()
+                test_iterator = test_dataset.make_initializable_iterator()
+                sess.run(test_iterator.initializer)
+                test_batch = test_iterator.get_next()
+
+                X_batch, y_batch = sess.run(test_batch)
+                yield (X_batch, y_batch)
 
 print('Generators Loaded.')
 
