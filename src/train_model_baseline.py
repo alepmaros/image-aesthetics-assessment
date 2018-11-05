@@ -41,8 +41,8 @@ model.save(os.path.join(_BASE_PATH, 'trained_models', 'baseline_model_final.h5')
 loss = history.losses
 val_loss = history.val_losses
 
-with open(os.path.join('trained_models', 'loss.txt'), 'w') as fhandle:
+with open(os.path.join('trained_models', 'loss_baseline.txt'), 'wb') as fhandle:
     pickle.dump(loss, fhandle)
 
-with open(os.path.join('trained_models', 'val_loss.txt'), 'w') as fhandle:
+with open(os.path.join('trained_models', 'val_loss_baseline.txt'), 'wb') as fhandle:
     pickle.dump(val_loss, fhandle)
