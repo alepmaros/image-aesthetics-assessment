@@ -8,11 +8,7 @@ import tensorflow as tf
 
 import sys 
 sys.path.append('..')
-# from sys_config import _BASE_PATH, _RANDOM_SEED
-
-
-_BASE_PATH = '/home/apm/git/image-aesthetics-assessment'
-_RANDOM_SEED = 481516
+from sys_config import _BASE_PATH, _RANDOM_SEED
 
 print('Loading Generators...')
 

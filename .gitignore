@@ -10,3 +10,4 @@ src/__pycache__/*
 *.h5
 experiments/*
 trained_models/*
+src/sys_config.py

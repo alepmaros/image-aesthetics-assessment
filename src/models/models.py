@@ -4,6 +4,7 @@ from keras.models import Model
 from keras.applications import MobileNetV2, MobileNet
 from keras.optimizers import RMSprop, Adam, Adadelta
 from keras.losses import binary_crossentropy
+from keras import layers
 
 from .losses import earth_mover_loss
 
@@ -74,3 +75,29 @@ def get_baseline():
             optimizer=optimizer)
 
     return final_model
+
+def get_model_paper():
+
+    img_input = layers.Input(shape=(224, 224, 3))
+
+    x = layers.Conv2D(64, (2, 2), padding='same', activation='relu')(img_input)
+    x = layers.Conv2D(64, (2, 2), activation='relu', padding='same')(x)
+    x = layers.MaxPooling2D((2, 2), strides=(2, 2))(x)
+
+    # Block 2
+    x = layers.Conv2D(64, (5, 5), activation='relu', padding='same')(x)
+    x = layers.Conv2D(64, (5, 5), activation='relu', padding='same')(x)
+    # x = layers.MaxPooling2D((4, 4), strides=(2, 2))(x)
+
+    x = layers.Flatten()(x)
+    x = layers.Dense(1000, activation='relu')(x)
+    x = layers.Dropout(0.3)(x)
+    x = layers.Dense(256, activation='relu')(x)
+    x = layers.Dense(7, activation='softmax')(x)
+
+    model = Model(img_input, x)
+
+    optimizer = Adam(lr=1e-3)
+    model.compile(loss=earth_mover_loss, optimizer=optimizer)
+
+    return model
