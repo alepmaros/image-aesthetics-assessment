@@ -81,13 +81,14 @@ def get_model_paper():
     img_input = layers.Input(shape=(224, 224, 3))
 
     x = layers.Conv2D(64, (2, 2), padding='same', activation='relu')(img_input)
+    x = layers.MaxPooling2D((4, 4), strides=(4, 4))(x)
     x = layers.Conv2D(64, (2, 2), activation='relu', padding='same')(x)
     x = layers.MaxPooling2D((2, 2), strides=(2, 2))(x)
 
     # Block 2
     x = layers.Conv2D(64, (5, 5), activation='relu', padding='same')(x)
-    x = layers.Conv2D(64, (5, 5), activation='relu', padding='same')(x)
-    # x = layers.MaxPooling2D((4, 4), strides=(2, 2))(x)
+    x = layers.Conv2D(64, (3, 3), activation='relu', padding='same')(x)
+    x = layers.MaxPooling2D((4, 4), strides=(2, 2))(x)
 
     x = layers.Flatten()(x)
     x = layers.Dense(1000, activation='relu')(x)
