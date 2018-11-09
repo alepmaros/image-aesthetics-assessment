@@ -8,7 +8,9 @@ import numpy as np
 
 from sklearn.model_selection import train_test_split
 
-from src.sys_config import _RANDOM_SEED
+# from src.sys_config import _RANDOM_SEED
+
+_RANDOM_SEED = 481516
 
 imgs_csv = pd.read_csv('datasets/photonet/photonet_dataset_cleaned.csv')
 

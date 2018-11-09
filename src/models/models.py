@@ -56,8 +56,7 @@ def get_2nd_proposed_model():
     x = Dense(7, activation='softmax')(model.layers[-2].output)
     final_model = Model(inputs=model.input, outputs=x)
     print(final_model.summary())
-    # optimizer = Adam(lr=1e-3)
-    optimizer = Adadelta()
+    optimizer = Adam(lr=1e-3)
     final_model.compile(loss=earth_mover_loss,
             optimizer=optimizer)
 

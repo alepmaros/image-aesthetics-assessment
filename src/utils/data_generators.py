@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 
 from sklearn.model_selection import train_test_split
+from sklearn.utils.class_weight import compute_class_weight
 
 import tensorflow as tf
 
@@ -31,7 +32,7 @@ def get_paths(imgs_df):
         score = score / np.sum(score)
 
         image_scores.append(score.tolist())
-        image_scores_baseline.append(np.rint(row['mean_ratings'])-1)
+        image_scores_baseline.append(int(np.rint(row['mean_ratings'])-1))
     return image_paths, image_scores, image_scores_baseline
 
 imgs_csv = pd.read_csv(os.path.join(_BASE_PATH, 'datasets/photonet/photonet_cleaned_tf.csv'))
@@ -51,6 +52,27 @@ _SIZE_CV = imgs_cv.shape[0]
 train_image_paths, train_scores, train_scores_baseline = get_paths(imgs_train)
 test_image_paths, test_scores, test_scores_baseline = get_paths(imgs_test)
 cv_image_paths, cv_scores, cv_scores_baseline = get_paths(imgs_cv)
+
+aux_CLASS_WEIGHTS = compute_class_weight('balanced', np.unique(train_scores_baseline), train_scores_baseline)
+aux_CLASS_WEIGHTS_VALIDATION = compute_class_weight('balanced', np.unique(cv_scores_baseline), cv_scores_baseline)
+
+_CLASS_WEIGHTS = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+_CLASS_WEIGHTS_VALIDATION = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0}
+
+for index, unq in enumerate(np.unique(train_scores_baseline)):
+    _CLASS_WEIGHTS[unq] = aux_CLASS_WEIGHTS[index]
+
+for index, unq in enumerate(np.unique(cv_scores_baseline)):
+    _CLASS_WEIGHTS_VALIDATION[unq] = aux_CLASS_WEIGHTS_VALIDATION[index]
+
+cv_weights_baseline = []
+for score in cv_scores_baseline:
+    cv_weights_baseline.append(_CLASS_WEIGHTS_VALIDATION[int(score)])
+
+train_weights_baseline = []
+for score in train_scores_baseline:
+    train_weights_baseline.append(_CLASS_WEIGHTS[int(score)])
+
 
 def parse_data_rc(filename, scores):
     '''
@@ -72,7 +94,7 @@ def parse_data_rc(filename, scores):
 
     return image_resized, image_ccropped, scores
 
-def parse_data_r(filename, scores):
+def parse_data_r(filename, scores, weight=None):
     '''
     Loads the image file without any augmentation. Used for validation set.
     Args:
@@ -86,7 +108,7 @@ def parse_data_r(filename, scores):
     image = tf.cast(image, tf.float32) / 255.0
     image_resized = tf.image.resize_images(image, (IMAGE_SIZE, IMAGE_SIZE))
 
-    return image_resized, scores
+    return image_resized, scores, weight
 
 def train_generator_rc(batchsize, shuffle=True):
     '''
@@ -203,7 +225,7 @@ def train_generator_r(batchsize, shuffle=True):
     '''
     with tf.Session() as sess:
         # create a dataset
-        train_dataset = tf.data.Dataset().from_tensor_slices((train_image_paths, train_scores))
+        train_dataset = tf.data.Dataset().from_tensor_slices((train_image_paths, train_scores, train_weights_baseline))
         train_dataset = train_dataset.map(parse_data_r, num_parallel_calls=2)
 
         train_dataset = train_dataset.batch(batchsize)
@@ -218,14 +240,14 @@ def train_generator_r(batchsize, shuffle=True):
 
         while True:
             try:
-                X_batch, y_batch = sess.run(train_batch)
+                X_batch, y_batch, _ = sess.run(train_batch)
                 yield (X_batch, y_batch)
             except:
                 train_iterator = train_dataset.make_initializable_iterator()
                 sess.run(train_iterator.initializer)
                 train_batch = train_iterator.get_next()
 
-                X_batch, y_batch = sess.run(train_batch)
+                X_batch, y_batch, _ = sess.run(train_batch)
                 yield (X_batch, y_batch)
 
 def valid_generator_r(batchsize, shuffle=True):
@@ -238,7 +260,7 @@ def valid_generator_r(batchsize, shuffle=True):
     '''
     with tf.Session() as sess:
         # create a dataset
-        valid_dataset = tf.data.Dataset().from_tensor_slices((cv_image_paths, cv_scores))
+        valid_dataset = tf.data.Dataset().from_tensor_slices((cv_image_paths, cv_scores, cv_weights_baseline))
         valid_dataset = valid_dataset.map(parse_data_r, num_parallel_calls=2)
 
         valid_dataset = valid_dataset.batch(batchsize)
@@ -253,8 +275,8 @@ def valid_generator_r(batchsize, shuffle=True):
 
         while True:
             try:
-                X_batch, y_batch = sess.run(valid_batch)
-                yield (X_batch, y_batch)
+                X_batch, y_batch, y_weight = sess.run(valid_batch)
+                yield (X_batch, y_batch, y_weight)
             except Exception as e:
                 print(e)
                 input()
@@ -262,8 +284,8 @@ def valid_generator_r(batchsize, shuffle=True):
                 sess.run(valid_iterator.initializer)
                 valid_batch = valid_iterator.get_next()
 
-                X_batch, y_batch = sess.run(valid_batch)
-                yield (X_batch, y_batch)
+                X_batch, y_batch, y_weight = sess.run(valid_batch)
+                yield (X_batch, y_batch, y_weight)
 
 def test_generator_r(batchsize, shuffle=True):
     '''
@@ -290,7 +312,7 @@ def test_generator_r(batchsize, shuffle=True):
 
         while True:
             try:
-                X_batch, y_batch = sess.run(test_batch)
+                X_batch, y_batch, _ = sess.run(test_batch)
                 yield (X_batch, y_batch)
             except Exception as e:
                 print(e)
@@ -299,7 +321,7 @@ def test_generator_r(batchsize, shuffle=True):
                 sess.run(test_iterator.initializer)
                 test_batch = test_iterator.get_next()
 
-                X_batch, y_batch = sess.run(test_batch)
+                X_batch, y_batch, _ = sess.run(test_batch)
                 yield (X_batch, y_batch)
 
 print('Generators Loaded.')
