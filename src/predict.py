@@ -1,11 +1,11 @@
 
-import os, random, time, pickle, cv2
+import os, random, time, pickle, cv2, copy
 import numpy as np
 import pandas as pd
 
 import matplotlib.pyplot as plt
 
-from PIL import Image
+import PIL
 
 import tensorflow as tf
 import keras.losses
@@ -13,6 +13,8 @@ from keras.models import load_model
 from keras.models import Model
 
 from models.losses import earth_mover_loss
+from utils.DataGenerators import DataGeneratorSingleColumn
+from sklearn.model_selection import train_test_split
 
 keras.losses.earth_mover_loss = earth_mover_loss
 
@@ -29,29 +31,55 @@ def noisy(image):
 def get_mean(pred):
     return pred[0] * 1 + pred[1] * 2 + pred[2] * 3 + pred[4] * 5 + pred[5] * 6 + pred[6] * 7
 
+def parse_data(filename):
+    image = tf.read_file(filename)
+    image = tf.image.decode_jpeg(image, channels=3)
+    image = tf.cast(image, tf.float32) / 255.0
+    image = tf.image.resize_images(image, (224, 224))
+
+    return image
+
 if __name__ == '__main__':   
-    model = load_model('trained_models/baseline_model.h5')
-
-    img_good = cv2.imread('datasets/train_station.jpg')
-    img_good = cv2.resize(img_good, (224, 224))
-    img_good = img_good[:, :, 0:3]/255.0
-
-    y_pred_good = model.predict(np.expand_dims(img_good, axis=0))
-    print('Good', get_mean(y_pred_good[0]))
-
-    ## Add Noise
-    img_good_noisy = noisy(img_good)
-    # cv2.imshow('dst_rt', img_good_noisy)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
-
-    y_pred_good_noisy = model.predict(np.expand_dims(img_good_noisy, axis=0))
-    print('Good noisy', get_mean(y_pred_good_noisy[0]))
-
-    img_bad = cv2.imread('datasets/ugly_image.jpg')
-    img_bad = cv2.resize(img_bad, (224, 224))
-    img_bad = img_bad[:, :, 0:3]/255.0
     
 
-    y_pred_bad = model.predict(np.expand_dims(img_bad, axis=0))
-    print('Bad',  get_mean(y_pred_bad[0]))
+    with tf.Session() as sess:
+        
+
+        sess.run(tf.global_variables_initializer())
+        fn = tf.placeholder(dtype=tf.string)
+        tensor = parse_data(fn)
+
+        imgs_csv = pd.read_csv('datasets/photonet/photonet_cleaned_tf.csv')
+        imgs_train, imgs_test = train_test_split(imgs_csv, test_size=0.2, random_state=481516)
+        imgs_test, imgs_cv = train_test_split(imgs_test, test_size=0.5, random_state=481516)
+
+        # imgs_cv.sort_values('mean_ratings', ascending=False, inplace=True)
+
+        imgs_cv = pd.concat([
+            imgs_cv.sort_values('mean_ratings', ascending=False).head(5),
+            imgs_cv.sort_values('mean_ratings', ascending=True).head(5)
+        ])
+
+        cv_generator = DataGeneratorSingleColumn(imgs_cv.head(10), batch_size=1)
+
+        model = load_model('trained_models/eml_model.h5')
+
+        y_pred = model.predict_generator(cv_generator, verbose=1)
+
+        for yy in y_pred:
+            print(get_mean(yy))
+
+        X = np.empty((3, 224, 224, 3))
+        X[0,] = sess.run(tensor, feed_dict={fn: 'datasets/train_station.jpg'})
+        X[1,] = sess.run(tensor, feed_dict={fn: 'datasets/ugly_image.jpg'})
+        X[2,] = np.zeros((224,224,3))
+
+        # img = PIL.Image.fromarray(np.uint8(X[0,]*255))
+        # img.show()
+        # img = PIL.Image.fromarray(np.uint8(X[1,]*255))
+        # img.show()
+
+        y_pred = model.predict_on_batch(X)
+        print(y_pred)
+        print('Good', get_mean(y_pred[0]), y_pred[0])
+        print('Bad', get_mean(y_pred[1]), y_pred[1])

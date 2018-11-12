@@ -21,6 +21,9 @@ from sklearn.metrics import roc_curve, auc, precision_recall_curve, average_prec
 
 BATCH_SIZE = 1
 
+def get_mean(pred):
+    return pred[0] * 1 + pred[1] * 2 + pred[2] * 3 + pred[4] * 5 + pred[5] * 6 + pred[6] * 7
+
 if __name__ == '__main__':
     plt.style.use('seaborn-whitegrid')
         
@@ -39,12 +42,11 @@ if __name__ == '__main__':
             pickle.dump(y_pred, fhandle)
     
     
-    test_scores = imgs_test.apply(lambda x: int(np.rint(x['mean_ratings'])-1), axis=1).values
+
+    test_scores = imgs_test.apply(lambda x: x['mean_ratings'], axis=1).values
     print(len(test_scores))
     print(len(y_pred))
 
-    print(test_scores)
-    
     residual = []
     for index, ts in enumerate(test_scores):
         mean_true = ts
@@ -52,9 +54,22 @@ if __name__ == '__main__':
 
         residual.append(mean_true - mean_predicted)
 
-    plt.hist(residual, bins=18, label='Média: {} $\pm$ {}'.format( np.round(np.mean(residual), 2), np.round(np.std(residual),2)))
+    plt.hist(residual, label='Média: {} $\pm$ {}'.format( np.round(np.mean(residual), 2), np.round(np.std(residual),2)))
     plt.legend()
     plt.ylabel('Quantidade')
     plt.xlabel('Resíduo')
     plt.xlim(-6, 6)
+ 
+    with open('trained_models/loss_eml.txt', 'rb') as fhandle:
+            loss = pickle.load(fhandle)
+    
+    with open('trained_models/val_loss_eml.txt', 'rb') as fhandle:
+            val_loss = pickle.load(fhandle)
+
+    plt.figure()
+    plt.plot(range(1,21), loss, label='Loss')
+    plt.plot(range(1,21), val_loss, label='Val Loss')
+    plt.xticks(range(1,21))
+
+    plt.legend()
     plt.show()

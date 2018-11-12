@@ -64,16 +64,32 @@ def get_2nd_proposed_model():
 
 
 def get_baseline():
-    model = MobileNetV2(weights=None, include_top=True)
-    # x = Dense(1, activation='sigmoid', name='predictions')(model.layers[-2].output)
-    x = Dense(7, activation='softmax')(model.layers[-2].output)
-    final_model = Model(inputs=model.input, outputs=x)
-    print(final_model.summary())
-    optimizer = Adam(lr=1e-3)
-    final_model.compile(loss=binary_crossentropy,
+    img_input = layers.Input(shape=(224, 224, 3))
+
+    x = layers.Conv2D(64, (2, 2), padding='same', activation='relu')(img_input)
+    x = layers.MaxPooling2D((4, 4), strides=(4, 4))(x)
+    x = layers.Conv2D(64, (2, 2), activation='relu', padding='same')(x)
+    x = layers.MaxPooling2D((2, 2), strides=(2, 2))(x)
+
+    # Block 2
+    x = layers.Conv2D(64, (5, 5), activation='relu', padding='same')(x)
+    x = layers.Conv2D(64, (3, 3), activation='relu', padding='same')(x)
+
+    x = layers.Flatten()(x)
+    x = layers.Dense(256, activation='relu')(x)
+    x = layers.Dropout(0.5)(x)
+    x = layers.Dense(128, activation='relu')(x)
+    x = layers.Dropout(0.3)(x)
+    x = layers.Dense(7, activation='softmax')(x)
+
+    model = Model(img_input, x)
+    print(model.summary())
+
+    optimizer = Adam()
+    model.compile(loss=binary_crossentropy,
             optimizer=optimizer)
 
-    return final_model
+    return model
 
 def get_model_paper():
 
@@ -87,17 +103,18 @@ def get_model_paper():
     # Block 2
     x = layers.Conv2D(64, (5, 5), activation='relu', padding='same')(x)
     x = layers.Conv2D(64, (3, 3), activation='relu', padding='same')(x)
-    x = layers.MaxPooling2D((4, 4), strides=(2, 2))(x)
 
     x = layers.Flatten()(x)
-    x = layers.Dense(1000, activation='relu')(x)
-    x = layers.Dropout(0.3)(x)
     x = layers.Dense(256, activation='relu')(x)
+    x = layers.Dropout(0.5)(x)
+    x = layers.Dense(128, activation='relu')(x)
+    x = layers.Dropout(0.3)(x)
     x = layers.Dense(7, activation='softmax')(x)
 
     model = Model(img_input, x)
+    print(model.summary())
 
-    optimizer = Adam(lr=1e-3)
+    optimizer = Adam()
     model.compile(loss=earth_mover_loss, optimizer=optimizer)
 
     return model
