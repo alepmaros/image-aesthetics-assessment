@@ -49,30 +49,33 @@ if __name__ == '__main__':
         fn = tf.placeholder(dtype=tf.string)
         tensor = parse_data(fn)
 
-        imgs_csv = pd.read_csv('datasets/photonet/photonet_cleaned_tf.csv')
-        imgs_train, imgs_test = train_test_split(imgs_csv, test_size=0.2, random_state=481516)
-        imgs_test, imgs_cv = train_test_split(imgs_test, test_size=0.5, random_state=481516)
+        # imgs_csv = pd.read_csv('datasets/photonet/photonet_cleaned_tf.csv')
+        # imgs_train, imgs_test = train_test_split(imgs_csv, test_size=0.2, random_state=481516)
+        # imgs_test, imgs_cv = train_test_split(imgs_test, test_size=0.5, random_state=481516)
 
-        # imgs_cv.sort_values('mean_ratings', ascending=False, inplace=True)
+        # # imgs_cv.sort_values('mean_ratings', ascending=False, inplace=True)
 
-        imgs_cv = pd.concat([
-            imgs_cv.sort_values('mean_ratings', ascending=False).head(5),
-            imgs_cv.sort_values('mean_ratings', ascending=True).head(5)
-        ])
+        # imgs_cv = pd.concat([
+        #     imgs_cv.sort_values('mean_ratings', ascending=False).head(5),
+        #     imgs_cv.sort_values('mean_ratings', ascending=True).head(5)
+        # ])
 
-        cv_generator = DataGeneratorSingleColumn(imgs_cv.head(10), batch_size=1)
+        # cv_generator = DataGeneratorSingleColumn(imgs_cv.head(10), batch_size=1)
 
-        model = load_model('trained_models/eml_model.h5')
+        
 
-        y_pred = model.predict_generator(cv_generator, verbose=1)
+        # y_pred = model.predict_generator(cv_generator, verbose=1)
 
-        for yy in y_pred:
-            print(get_mean(yy))
+        # for yy in y_pred:
+        #     print(get_mean(yy))
 
-        X = np.empty((3, 224, 224, 3))
-        X[0,] = sess.run(tensor, feed_dict={fn: 'datasets/train_station.jpg'})
-        X[1,] = sess.run(tensor, feed_dict={fn: 'datasets/ugly_image.jpg'})
-        X[2,] = np.zeros((224,224,3))
+        model = load_model('trained_models/eml_model_20_0.13.h5')
+        
+        X = np.empty((4, 224, 224, 3))
+        X[0,] = sess.run(tensor, feed_dict={fn: 'datasets/cat_example.jpg'})
+        X[1,] = sess.run(tensor, feed_dict={fn: 'datasets/cat_example_blurred.jpg'})
+        X[2,] = sess.run(tensor, feed_dict={fn: 'datasets/cat_example_exposure.jpg'})
+        X[3,] = sess.run(tensor, feed_dict={fn: 'datasets/ugly_image.jpg'})
 
         # img = PIL.Image.fromarray(np.uint8(X[0,]*255))
         # img.show()
@@ -81,5 +84,7 @@ if __name__ == '__main__':
 
         y_pred = model.predict_on_batch(X)
         print(y_pred)
-        print('Good', get_mean(y_pred[0]), y_pred[0])
-        print('Bad', get_mean(y_pred[1]), y_pred[1])
+        print('Cat Example', get_mean(y_pred[0]), y_pred[0])
+        print('Cat Example Blurred', get_mean(y_pred[1]), y_pred[1])
+        print('Cat Example Noise', get_mean(y_pred[2]), y_pred[2])
+        print('Ugly', get_mean(y_pred[3]), y_pred[3])

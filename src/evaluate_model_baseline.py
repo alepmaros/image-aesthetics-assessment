@@ -32,7 +32,7 @@ if __name__ == '__main__':
         with open('experiments/baseline_model_predictions', 'rb') as fhandle:
             y_pred = pickle.load(fhandle)
     else:
-        model = load_model('trained_models/baseline_model.h5')
+        model = load_model('trained_models/baseline_model_20_0.29.h5')
         y_pred = model.predict_generator(test_generator, verbose=1)
         with open('experiments/baseline_model_predictions', 'wb') as fhandle:
             pickle.dump(y_pred, fhandle)
@@ -51,22 +51,15 @@ if __name__ == '__main__':
 
         residual.append(mean_true - mean_predicted)
 
-    plt.hist(residual,  label='Média: {} $\pm$ {}'.format( np.round(np.mean(residual), 2), np.round(np.std(residual),2)))
-    plt.legend()
-    plt.ylabel('Quantidade')
-    plt.xlabel('Resíduo')
-    plt.xlim(-6, 6)
+    with plt.style.context(('seaborn-darkgrid')):
+        f = plt.figure(figsize=(4.5,3.5))
+        plt.hist(residual,  label='Média: {} $\pm$ {}'.format( np.round(np.mean(residual), 2), np.round(np.std(residual),2)))
+        plt.legend()
 
-    with open('trained_models/loss_baseline.txt', 'rb') as fhandle:
-            loss = pickle.load(fhandle)
-    
-    with open('trained_models/val_loss_baseline.txt', 'rb') as fhandle:
-            val_loss = pickle.load(fhandle)
-
-    plt.figure()
-    plt.plot(range(1,21), loss, label='Loss')
-    plt.plot(range(1,21), val_loss, label='Val Loss')
-    plt.xticks(range(1,21))
-
-    plt.legend()
-    plt.show()
+        plt.title('Resíduo Cross entropy')
+        plt.ylabel('Quantidade')
+        plt.xlabel('Resíduo')
+        plt.xlim(-6, 6)
+        
+        plt.tight_layout
+        plt.savefig('experiments/residual_baseline.pdf')
